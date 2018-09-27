@@ -1,2 +1,4 @@
+github.com/barsanuphe/goexiftool v0.0.0-20180509224600-0e25a2871ba9 h1:QXGcbw5COfB7DUI29jl6viv2uPdxSV2P1tQXqFbUnFw=
+github.com/barsanuphe/goexiftool v0.0.0-20180509224600-0e25a2871ba9/go.mod h1:VAnOgbHwTa6nJUuKQCV7XoIxrpNuHkt7jD3BlHEhN7w=
 github.com/vansante/go-ffprobe v0.0.0-20180501122240-d08148e08305 h1:lZfjco7PUVzL0V0E3/fcREYvL5cRkJEc56G44bWvkn8=
 github.com/vansante/go-ffprobe v0.0.0-20180501122240-d08148e08305/go.mod h1:MT9fbqLwtrELBpKBDNWmReQdAl51ZgoGaLin6tM7eqo=

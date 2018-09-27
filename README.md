@@ -2,7 +2,7 @@
 
 ## Prerequisite
 ffprobe : brew install ffmpeg
-
+exiftool : brew install exiftool
 
 ## Install
 go install .

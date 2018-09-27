@@ -5,9 +5,11 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"time"
 
+	"github.com/barsanuphe/goexiftool"
 	ffprobe "github.com/vansante/go-ffprobe"
 )
 
@@ -58,27 +60,59 @@ func main() {
 
 	files, err := getFiles(flag.Args())
 	if err != nil {
-		fmt.Printf("Error: %s", err)
+		fmt.Printf("Error: %s\n", err)
 		return
 	}
 
 	for _, file := range files {
 
-		data, err := ffprobe.GetProbeData(file, 500*time.Millisecond)
-		if err != nil {
-			fmt.Printf("Error getting data: %v", err)
-		}
+		var t time.Time
 
-		if *showInfo {
-			buf, _ := json.MarshalIndent(data, "", "  ")
-			fmt.Printf("%s: %s\n", file, string(buf))
-			break
-		}
+		// MTS has EXIF info
+		if path.Ext(file) == ".MTS" {
+			m, err := goexiftool.NewMediaFile(file)
+			if err != nil {
+				fmt.Printf("Error while probing file '%s': %v\n", file, err)
+				continue
+			}
 
-		t, err := time.Parse(time.RFC3339, data.Format.Tags.CreationTime)
-		if err != nil {
-			fmt.Printf("Error converting date: %v", err)
-			return
+			if *showInfo {
+				fmt.Printf("%s: %s\n", file, m)
+				continue
+			}
+
+			val, err := m.Get("Date/Time Original")
+			if err != nil {
+				fmt.Printf("Error while getting date from data in file '%s': %v\n", file, err)
+				continue
+			}
+
+			t, err = time.Parse("2006:01:02 15:04:05-07:00", val)
+			if err != nil {
+				fmt.Printf("Error while parsing date in file '%s': %v\n", file, err)
+				continue
+			}
+
+		} else {
+			// Try getting metadata for other filetypes
+
+			data, err := ffprobe.GetProbeData(file, 4000*time.Millisecond)
+			if err != nil {
+				fmt.Printf("Error while probing file '%s': %v\n", file, err)
+				continue
+			}
+
+			if *showInfo {
+				buf, _ := json.MarshalIndent(data, "", "  ")
+				fmt.Printf("%s: %s\n", file, string(buf))
+				continue
+			}
+
+			t, err = time.Parse(time.RFC3339, data.Format.Tags.CreationTime)
+			if err != nil {
+				fmt.Printf("Error converting date: %v\n", err)
+				continue
+			}
 		}
 
 		newname := fmt.Sprintf("%d-%02d-%02d_%02d.%02d_%s",
@@ -87,14 +121,14 @@ func main() {
 		newname = filepath.Join(filepath.Dir(file), newname)
 
 		if *force {
-			fmt.Printf("FORCE: Rename: %s to %s\n", file, newname)
+			fmt.Printf("Renaming: %s to %s\n", file, newname)
 			err = os.Rename(file, newname)
 			if err != nil {
-				fmt.Printf("Error renaming file: %s, err: %v", file, err)
-				return
+				fmt.Printf("Error renaming file: %s, err: %v\n", file, err)
+				continue
 			}
 		} else {
-			fmt.Printf("Rename: %s to %s\n", file, newname)
+			fmt.Printf("DRYRUN: Renaming: %s to %s\n", file, newname)
 		}
 	}
 }
