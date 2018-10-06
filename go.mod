@@ -1,4 +1,4 @@
-module github.com/dorant/rename-videos
+module github.com/dorant/rename-media
 
 require (
 	github.com/barsanuphe/goexiftool v0.0.0-20180509224600-0e25a2871ba9

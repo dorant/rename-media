@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/barsanuphe/goexiftool"
@@ -47,6 +48,14 @@ func getFiles(paths []string) ([]string, error) {
 	return files, nil
 }
 
+func hasExif(extension string) bool {
+	switch strings.ToUpper(extension) {
+	case ".MTS", ".JPG", ".3GP":
+		return true
+	}
+	return false
+}
+
 func main() {
 
 	if len(os.Args) < 2 {
@@ -68,8 +77,7 @@ func main() {
 
 		var t time.Time
 
-		// MTS has EXIF info
-		if path.Ext(file) == ".MTS" {
+		if hasExif(path.Ext(file)) {
 			m, err := goexiftool.NewMediaFile(file)
 			if err != nil {
 				fmt.Printf("Error while probing file '%s': %v\n", file, err)
@@ -83,14 +91,23 @@ func main() {
 
 			val, err := m.Get("Date/Time Original")
 			if err != nil {
-				fmt.Printf("Error while getting date from data in file '%s': %v\n", file, err)
-				continue
+				fmt.Printf("Error while getting date from file '%s'. Trying other Exif date..\n", file)
+				val, err = m.Get("File Modification Date/Time")
+				if err != nil {
+					fmt.Printf("Error while getting date from file '%s': %v\n", file, err)
+					continue
+				}
 			}
-
-			t, err = time.Parse("2006:01:02 15:04:05-07:00", val)
+			t, err = time.Parse("2006:01:02 15:04:05-07:00 MST", val)
 			if err != nil {
-				fmt.Printf("Error while parsing date in file '%s': %v\n", file, err)
-				continue
+				t, err = time.Parse("2006:01:02 15:04:05-07:00", val)
+				if err != nil {
+					t, err = time.Parse("2006:01:02 15:04:05", val)
+					if err != nil {
+						fmt.Printf("Error while parsing date from file '%s': %v\n", file, err)
+						continue
+					}
+				}
 			}
 
 		} else {
@@ -110,7 +127,7 @@ func main() {
 
 			t, err = time.Parse(time.RFC3339, data.Format.Tags.CreationTime)
 			if err != nil {
-				fmt.Printf("Error converting date: %v\n", err)
+				fmt.Printf("Error converting date from file '%s': %v\n", file, err)
 				continue
 			}
 		}
@@ -124,7 +141,7 @@ func main() {
 			fmt.Printf("Renaming: %s to %s\n", file, newname)
 			err = os.Rename(file, newname)
 			if err != nil {
-				fmt.Printf("Error renaming file: %s, err: %v\n", file, err)
+				fmt.Printf("Error renaming file '%s': %v\n", file, err)
 				continue
 			}
 		} else {

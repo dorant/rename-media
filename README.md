@@ -1,4 +1,4 @@
-# Tool to add creation time to video filenames
+# Tool to add creation time to video & image filenames
 
 ## Prerequisite
 * ffprobe  (brew install ffmpeg)
@@ -9,7 +9,7 @@ go install .
 
 ## Example
 ```
-$ rename-videos -f /Volumes/Video/SomeVideos/
+$ rename-media -f /Volumes/Video/SomeVideos/
 Renaming: /Volumes/Video/SomeVideos/00000.MTS to /Volumes/Video/SomeVideos/2014-03-05_10.09_00000.MTS
 Renaming: /Volumes/Video/SomeVideos/00001.MTS to /Volumes/Video/SomeVideos/2014-03-05_10.12_00001.MTS
 Renaming: /Volumes/Video/SomeVideos/00002.MTS to /Volumes/Video/SomeVideos/2014-03-05_21.08_00002.MTS
